@@ -1,4 +1,4 @@
-// Reverse Shell Hunting - Suspicious file download - v1.0.0
+// Linux root behaviour - v1.0.0
 // Matias Bendel by Crowdstrike
 #event_simpleName=ProcessRollup2 event_platform=Lin
 // Filter root User
