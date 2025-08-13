@@ -1,9 +1,10 @@
-align="left"
-Installation and configuration of CrowdStrike Helm Charts for Kubernetes!
--------------------------------------------------------------------------
+<b>Installation and configuration of CrowdStrike Helm Charts for Kubernetes!</b>
 
-o Falcon Sensor: https://github.com/CrowdStrike/falcon-helm/tree/main/helm-charts/falcon-sensor
-    For GKE Autopilot: --node.gke.autopilot=true
+o Falcon Sensor: https://github.com/CrowdStrike/falcon-helm/tree/main/helm-charts/falcon-sensor    
+
+If GKE Autopilot: 
+    
+    --node.gke.autopilot=true
 
 o Falcon KAC: https://github.com/CrowdStrike/falcon-helm/tree/main/helm-charts/falcon-kac
 
