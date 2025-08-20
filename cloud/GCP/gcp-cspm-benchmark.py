@@ -1,4 +1,4 @@
-"""
+ """
 gcp-cspm-benchmark.py
 
 Assists with provisioning calculations by retrieving a count
@@ -40,16 +40,16 @@ def parse_arguments():
         description="Process GCP projects in sequential subsets for provisioning calculations"
     )
     parser.add_argument(
-        "--subset-size", "-m",
+        "--total-subsets", "-n",
         type=int,
         required=True,
-        help="Number of projects per subset (M)"
+        help="Total number of subsets to divide projects into (N)"
     )
     parser.add_argument(
-        "--subset-index", "-n",
+        "--subset-index", "-m",
         type=int,
         required=True,
-        help="Index of the subset to process (0-based, N)"
+        help="Index of the subset to process (0-based, 0 to N-1)"
     )
     parser.add_argument(
         "--output-prefix", "-o",
@@ -60,33 +60,54 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def get_project_subset(projects: List[Project], subset_size: int, subset_index: int) -> List[Project]:
+def get_project_subset(projects: List[Project], total_subsets: int, subset_index: int) -> List[Project]:
     """
-    Extract a sequential subset of projects.
+    Extract a sequential subset of projects by dividing total projects into N equal parts.
     
     Args:
         projects: List of all projects
-        subset_size: Number of projects per subset (M)
-        subset_index: Index of the subset to process (0-based, N)
+        total_subsets: Total number of subsets to divide projects into (N)
+        subset_index: Index of the subset to process (0-based, 0 to N-1)
     
     Returns:
         List of projects for the specified subset
     """
     total_projects = len(projects)
-    start_index = subset_index * subset_size
-    end_index = min(start_index + subset_size, total_projects)
+    
+    if subset_index >= total_subsets:
+        log.error(
+            "Subset index %d is out of range. Must be between 0 and %d",
+            subset_index, total_subsets - 1
+        )
+        return []
+    
+    # Calculate subset size (with remainder distributed to earlier subsets)
+    base_subset_size = total_projects // total_subsets
+    remainder = total_projects % total_subsets
+    
+    # Calculate start index for this subset
+    if subset_index < remainder:
+        # This subset gets one extra project
+        subset_size = base_subset_size + 1
+        start_index = subset_index * subset_size
+    else:
+        # This subset gets base size
+        subset_size = base_subset_size
+        start_index = remainder * (base_subset_size + 1) + (subset_index - remainder) * base_subset_size
+    
+    end_index = start_index + subset_size
     
     if start_index >= total_projects:
         log.warning(
-            "Subset index %d is out of range. Total projects: %d, subset size: %d",
-            subset_index, total_projects, subset_size
+            "Subset index %d is out of range. Total projects: %d, total subsets: %d",
+            subset_index, total_projects, total_subsets
         )
         return []
     
     subset = projects[start_index:end_index]
     log.info(
-        "Processing subset %d: projects %d-%d of %d total projects (%d projects in this subset)",
-        subset_index, start_index + 1, end_index, total_projects, len(subset)
+        "Processing subset %d of %d: projects %d-%d of %d total projects (%d projects in this subset)",
+        subset_index + 1, total_subsets, start_index + 1, end_index, total_projects, len(subset)
     )
     
     return subset
@@ -305,7 +326,7 @@ def main():
         "cloud_run_jobs": "Cloud Run Jobs",
     }
     totals = {
-        "project_id": f"subset_{args.subset_index}_totals",
+        "project_id": f"subset_{args.subset_index + 1}_of_{args.total_subsets}_totals",
         "kubenodes_running": 0,
         "kubenodes_terminated": 0,
         "vms_running": 0,
@@ -324,7 +345,9 @@ def main():
         log.error("No GCP projects found")
         exit(1)  # pylint: disable=consider-using-sys-exit
 
-    projects_subset = get_project_subset(all_projects, args.subset_size, args.subset_index)
+    log.info("Found %d total GCP projects", len(all_projects))
+    
+    projects_subset = get_project_subset(all_projects, args.total_subsets, args.subset_index)
     if not projects_subset:
         log.error("No projects in the specified subset")
         exit(1)  # pylint: disable=consider-using-sys-exit
@@ -341,11 +364,11 @@ def main():
     data.append(totals)
 
     # Generate output filenames with subset information
-    csv_filename = f"{args.output_prefix}_subset_{args.subset_index}.csv"
-    exceptions_filename = f"{args.output_prefix}_subset_{args.subset_index}_exceptions.txt"
+    csv_filename = f"{args.output_prefix}_subset_{args.subset_index + 1}_of_{args.total_subsets}.csv"
+    exceptions_filename = f"{args.output_prefix}_subset_{args.subset_index + 1}_of_{args.total_subsets}_exceptions.txt"
 
     # Output results
-    print(f"\nSubset {args.subset_index} Results:")
+    print(f"\nSubset {args.subset_index + 1} of {args.total_subsets} Results:")
     print(tabulate(data, headers=headers, tablefmt="grid", maxheadercolwidths=[10, 15, 15, 10, 15, 15, 15, 15, 12]))
 
     # Save CSV
@@ -366,7 +389,7 @@ def main():
         log.warning(MSG)
 
         with open(exceptions_filename, "w", encoding="utf-8") as f:
-            f.write(f"Subset {args.subset_index} Exceptions\n")
+            f.write(f"Subset {args.subset_index + 1} of {args.total_subsets} Exceptions\n")
             f.write("=" * 50 + "\n\n")
             for project_id, messages in service_disabled_calls.items():
                 f.write(f"Project ID: {project_id}\n")
