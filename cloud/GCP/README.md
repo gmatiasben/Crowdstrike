@@ -1,11 +1,17 @@
 # How to use this script
 
-If you have 100 total projects and want 4 subsets of 25 projects each:
+Process subset 1 (projects 1-25)
+  
+    python gcp-cspm-benchmark.py -n 4 -m 0
 
-python gcp-cspm-benchmark.py -m 25 -n 0  # Projects 1-25
+Process subset 2 (projects 26-50)  
 
-python gcp-cspm-benchmark.py -m 25 -n 1  # Projects 26-50
+    python gcp-cspm-benchmark.py -n 4 -m 1
 
-python gcp-cspm-benchmark.py -m 25 -n 2  # Projects 51-75
+Process subset 3 (projects 51-75)
 
-python gcp-cspm-benchmark.py -m 25 -n 3  # Projects 76-100
+    python gcp-cspm-benchmark.py -n 4 -m 2
+
+Process subset 4 (projects 76-100)
+
+    python gcp-cspm-benchmark.py -n 4 -m 3
