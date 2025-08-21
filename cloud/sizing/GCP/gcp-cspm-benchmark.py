@@ -101,9 +101,10 @@ def process_gcp_project(gcp_project: Project) -> Dict[str, Any]:
         return {}
     
     # Linea nueva
-    if gcp_projects.parent == 
-        return {}
-    
+    #if gcp_projects.parent == 
+    #    return {}
+    print(gcp_projects.parent)
+
     result = {
         "project_id": gcp_project.project_id,
         "kubenodes_running": 0,
