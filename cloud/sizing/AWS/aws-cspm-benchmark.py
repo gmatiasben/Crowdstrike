@@ -67,204 +67,6 @@ args: Optional[argparse.Namespace] = None
 logger: Optional[logging.Logger] = None
 
 
-def parse_args() -> argparse.Namespace:
-    """Parse and validate command line arguments"""
-    parser = argparse.ArgumentParser(description="AWS accounts analyzer")
-    parser.add_argument(
-        "-r",
-        "--role_name",
-        default="OrganizationAccountAccessRole",
-        help="Specify a custom role name to assume into.",
-    )
-    parser.add_argument("-R", "--regions", help="Specify which AWS regions to analyze.")
-    parser.add_argument(
-        "-t",
-        "--threads",
-        type=int,
-        default=5,
-        help="Number of worker threads for parallel processing (default: 5, reduced for rate limiting).",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=20,
-        help="Number of accounts to process per batch (default: 20).",
-    )
-    parser.add_argument(
-        "--batch-delay",
-        type=int,
-        default=30,
-        help="Delay in seconds between batches (default: 30).",
-    )
-    parser.add_argument(
-        "--api-delay",
-        type=float,
-        default=0.1,
-        help="Delay in seconds between API calls (default: 0.1).",
-    )
-    parser.add_argument(
-        "--max-retries",
-        type=int,
-        default=5,
-        help="Maximum retry attempts for failed operations (default: 5).",
-    )
-    parser.add_argument(
-        "--operation-timeout",
-        type=int,
-        default=300,
-        help="Timeout in seconds for individual operations (default: 300).",
-    )
-    parser.add_argument(
-        "--resume-file",
-        default="aws_benchmark_progress.json",
-        help="File to store/resume progress (default: aws_benchmark_progress.json).",
-    )
-    parser.add_argument(
-        "--skip-accounts", help="Comma-separated list of account IDs to skip."
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be processed without making API calls.",
-    )
-    
-    # Subset processing arguments
-    parser.add_argument(
-        "--total-subsets", "-n",
-        type=int,
-        help="Total number of subsets to divide accounts into (N)"
-    )
-    parser.add_argument(
-        "--subset-index", "-m",
-        type=int,
-        help="Index of the subset to process (0-based, 0 to N-1)"
-    )
-    parser.add_argument(
-        "--output-prefix", "-o",
-        type=str,
-        default="aws-benchmark",
-        help="Prefix for output files (default: aws-benchmark)"
-    )
-
-    args = parser.parse_args()  # pylint: disable=W0621
-
-    # Input validation
-    if args.threads < 1 or args.threads > 20:
-        parser.error("Threads must be between 1 and 20")
-
-    if args.batch_size < 1 or args.batch_size > 100:
-        parser.error("Batch size must be between 1 and 100")
-
-    if args.batch_delay < 0 or args.batch_delay > 3600:
-        parser.error("Batch delay must be between 0 and 3600 seconds")
-
-    if args.api_delay < 0 or args.api_delay > 10:
-        parser.error("API delay must be between 0 and 10 seconds")
-
-    if args.max_retries < 0 or args.max_retries > 20:
-        parser.error("Max retries must be between 0 and 20")
-
-    if args.operation_timeout < 30 or args.operation_timeout > 3600:
-        parser.error("Operation timeout must be between 30 and 3600 seconds")
-
-    if not args.role_name.strip():
-        parser.error("Role name cannot be empty")
-
-    # Validate subset arguments
-    if (args.total_subsets is None) != (args.subset_index is None):
-        parser.error("Both --total-subsets and --subset-index must be specified together")
-    
-    if args.total_subsets is not None:
-        if args.total_subsets < 1:
-            parser.error("Total subsets must be at least 1")
-        if args.subset_index < 0 or args.subset_index >= args.total_subsets:
-            parser.error(f"Subset index must be between 0 and {args.total_subsets - 1}")
-
-    # Validate regions format if provided
-    if args.regions:
-        regions = [r.strip() for r in args.regions.split(",")]
-        for region in regions:
-            if not region or not region.replace("-", "").isalnum():
-                parser.error(f"Invalid region format: {region}")
-
-    return args
-
-
-def get_account_subset(accounts: List["AWSHandle"], total_subsets: int, subset_index: int) -> List["AWSHandle"]:
-    """
-    Extract a sequential subset of accounts by dividing total accounts into N equal parts.
-    
-    Args:
-        accounts: List of all AWS accounts
-        total_subsets: Total number of subsets to divide accounts into (N)
-        subset_index: Index of the subset to process (0-based, 0 to N-1)
-    
-    Returns:
-        List of AWS accounts for the specified subset
-    """
-    total_accounts = len(accounts)
-    
-    if subset_index >= total_subsets:
-        logger.error(
-            "Subset index %d is out of range. Must be between 0 and %d",
-            subset_index, total_subsets - 1
-        )
-        return []
-    
-    # Calculate subset size (with remainder distributed to earlier subsets)
-    base_subset_size = total_accounts // total_subsets
-    remainder = total_accounts % total_subsets
-    
-    # Calculate start index for this subset
-    if subset_index < remainder:
-        # This subset gets one extra account
-        subset_size = base_subset_size + 1
-        start_index = subset_index * subset_size
-    else:
-        # This subset gets base size
-        subset_size = base_subset_size
-        start_index = remainder * (base_subset_size + 1) + (subset_index - remainder) * base_subset_size
-    
-    end_index = start_index + subset_size
-    
-    if start_index >= total_accounts:
-        logger.warning(
-            "Subset index %d is out of range. Total accounts: %d, total subsets: %d",
-            subset_index, total_accounts, total_subsets
-        )
-        return []
-    
-    subset = accounts[start_index:end_index]
-    logger.info(
-        "Processing subset %d of %d: accounts %d-%d of %d total accounts (%d accounts in this subset)",
-        subset_index + 1, total_subsets, start_index + 1, end_index, total_accounts, len(subset)
-    )
-    
-    return subset
-
-
-def setup_logging(log_level: str = "INFO") -> logging.Logger:
-    """Setup logging configuration"""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    return logging.getLogger(__name__)
-
-
-def setup_signal_handlers() -> None:
-    """Setup signal handlers for graceful shutdown"""
-
-    def signal_handler(signum: int) -> None:
-        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
-        # The KeyboardInterrupt will be caught in main() for proper cleanup
-        raise KeyboardInterrupt("Shutdown signal received")
-
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-
 class ErrorCollector:
     """Thread-safe error collection system to defer error output until after progress completes on each account"""
 
@@ -383,6 +185,123 @@ class ErrorCollector:
                 print(f"   ... and {len(other_errors) - max_errors} more errors")
 
         print()  # Add blank line after error display
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse and validate command line arguments"""
+    parser = argparse.ArgumentParser(description="AWS accounts analyzer")
+    parser.add_argument(
+        "-r",
+        "--role_name",
+        default="OrganizationAccountAccessRole",
+        help="Specify a custom role name to assume into.",
+    )
+    parser.add_argument("-R", "--regions", help="Specify which AWS regions to analyze.")
+    parser.add_argument(
+        "-t",
+        "--threads",
+        type=int,
+        default=5,
+        help="Number of worker threads for parallel processing (default: 5, reduced for rate limiting).",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=20,
+        help="Number of accounts to process per batch (default: 20).",
+    )
+    parser.add_argument(
+        "--batch-delay",
+        type=int,
+        default=30,
+        help="Delay in seconds between batches (default: 30).",
+    )
+    parser.add_argument(
+        "--api-delay",
+        type=float,
+        default=0.1,
+        help="Delay in seconds between API calls (default: 0.1).",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=5,
+        help="Maximum retry attempts for failed operations (default: 5).",
+    )
+    parser.add_argument(
+        "--operation-timeout",
+        type=int,
+        default=300,
+        help="Timeout in seconds for individual operations (default: 300).",
+    )
+    parser.add_argument(
+        "--resume-file",
+        default="aws_benchmark_progress.json",
+        help="File to store/resume progress (default: aws_benchmark_progress.json).",
+    )
+    parser.add_argument(
+        "--skip-accounts", help="Comma-separated list of account IDs to skip."
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be processed without making API calls.",
+    )
+
+    args = parser.parse_args()  # pylint: disable=W0621
+
+    # Input validation
+    if args.threads < 1 or args.threads > 20:
+        parser.error("Threads must be between 1 and 20")
+
+    if args.batch_size < 1 or args.batch_size > 100:
+        parser.error("Batch size must be between 1 and 100")
+
+    if args.batch_delay < 0 or args.batch_delay > 3600:
+        parser.error("Batch delay must be between 0 and 3600 seconds")
+
+    if args.api_delay < 0 or args.api_delay > 10:
+        parser.error("API delay must be between 0 and 10 seconds")
+
+    if args.max_retries < 0 or args.max_retries > 20:
+        parser.error("Max retries must be between 0 and 20")
+
+    if args.operation_timeout < 30 or args.operation_timeout > 3600:
+        parser.error("Operation timeout must be between 30 and 3600 seconds")
+
+    if not args.role_name.strip():
+        parser.error("Role name cannot be empty")
+
+    # Validate regions format if provided
+    if args.regions:
+        regions = [r.strip() for r in args.regions.split(",")]
+        for region in regions:
+            if not region or not region.replace("-", "").isalnum():
+                parser.error(f"Invalid region format: {region}")
+
+    return args
+
+
+def setup_logging(log_level: str = "INFO") -> logging.Logger:
+    """Setup logging configuration"""
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper()),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    return logging.getLogger(__name__)
+
+
+def setup_signal_handlers() -> None:
+    """Setup signal handlers for graceful shutdown"""
+
+    def signal_handler(signum: int) -> None:
+        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+        # The KeyboardInterrupt will be caught in main() for proper cleanup
+        raise KeyboardInterrupt("Shutdown signal received")
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
 
 class RateLimiter:  # pylint: disable=R0903
@@ -1259,12 +1178,6 @@ def print_resume_guidance(progress_tracker, args):  # pylint: disable=W0621,R091
         resume_cmd += f" --resume-file {args.resume_file}"
     if args.skip_accounts:
         resume_cmd += f' --skip-accounts "{args.skip_accounts}"'
-    if args.total_subsets is not None:
-        resume_cmd += f" --total-subsets {args.total_subsets}"
-    if args.subset_index is not None:
-        resume_cmd += f" --subset-index {args.subset_index}"
-    if args.output_prefix != "aws-benchmark":
-        resume_cmd += f" --output-prefix {args.output_prefix}"
 
     print(f"   {resume_cmd}")
 
@@ -1305,37 +1218,17 @@ def main() -> None:  # pylint: disable=R0915,R0914,R0912
     logger.info(f"  - Max retries: {args.max_retries}")
     logger.info(f"  - Operation timeout: {args.operation_timeout}s")
     logger.info(f"  - Dry run: {args.dry_run}")
-    if args.total_subsets is not None:
-        logger.info(f"  - Processing subset {args.subset_index + 1} of {args.total_subsets}")
 
     # Initialize components with global error collector
     global_error_collector = ErrorCollector()
     rate_limiter = RateLimiter(calls_per_second=1.0 / args.api_delay)
     retry_handler = RetryHandler(error_collector=global_error_collector)
-    
-    # Modify progress file name for subsets
-    if args.total_subsets is not None:
-        progress_file = f"{args.output_prefix}_subset_{args.subset_index + 1}_of_{args.total_subsets}_progress.json"
-    else:
-        progress_file = args.resume_file
-    
-    progress_tracker = ProgressTracker(progress_file)
+    progress_tracker = ProgressTracker(args.resume_file)
 
     # Get all AWS accounts
     try:
-        all_accounts = AWSOrgAccess(rate_limiter, retry_handler).accounts()
-        logger.info(f"Found {len(all_accounts)} total AWS accounts")
-        
-        # Apply subset filtering if specified
-        if args.total_subsets is not None:
-            accounts = get_account_subset(all_accounts, args.total_subsets, args.subset_index)
-            if not accounts:
-                logger.error("No accounts in the specified subset")
-                return
-            print(f"Processing subset {args.subset_index + 1} of {args.total_subsets}: {len(accounts)} accounts")
-        else:
-            accounts = all_accounts
-            print(f"Found {len(accounts)} accounts to process")
+        accounts = AWSOrgAccess(rate_limiter, retry_handler).accounts()
+        print(f"Found {len(accounts)} accounts to process")
 
         if not accounts:
             print("No accounts found to process")
@@ -1386,11 +1279,6 @@ def main() -> None:  # pylint: disable=R0915,R0914,R0912
         return
 
     if not args.dry_run:
-        # Update totals row for subset processing
-        if args.total_subsets is not None:
-            totals["account_id"] = f"subset_{args.subset_index + 1}_of_{args.total_subsets}_totals"
-            totals["region"] = f"subset_{args.subset_index + 1}_of_{args.total_subsets}_totals"
-        
         # Add totals row
         data.append(totals)
 
@@ -1403,28 +1291,25 @@ def main() -> None:  # pylint: disable=R0915,R0914,R0912
 
         # Output results
         if data:
-            # Generate output filename with subset information
+            # Save to CSV with timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            if args.total_subsets is not None:
-                csv_filename = f"{args.output_prefix}_subset_{args.subset_index + 1}_of_{args.total_subsets}_{timestamp}.csv"
-            else:
-                csv_filename = f"{args.output_prefix}_{timestamp}.csv"
+            csv_filename = f"aws-benchmark-{timestamp}.csv"
 
             with open(csv_filename, "w", newline="", encoding="utf-8") as csv_file:
                 csv_writer = csv.DictWriter(csv_file, fieldnames=headers.keys())
                 csv_writer.writeheader()
                 csv_writer.writerows(data)
 
-            print(f"\nCSV file stored in: ./{csv_filename}")
+            print(f"\nCSV file stored in: ./cloud-benchmark/{csv_filename}")
 
         # Clean up progress file on successful completion
         if len(progress_state["failed_accounts"]) == 0:
             try:
-                os.remove(progress_file)
+                os.remove(args.resume_file)
                 logger.info("Progress file cleaned up")
             except OSError as e:
                 logger.warning(
-                    f"Could not remove progress file {progress_file}: {e}"
+                    f"Could not remove progress file {args.resume_file}: {e}"
                 )
             except Exception as e:
                 logger.error(f"Unexpected error removing progress file: {e}")
