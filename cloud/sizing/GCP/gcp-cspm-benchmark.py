@@ -1,11 +1,10 @@
- """
+"""
 gcp-cspm-benchmark.py
 
 Assists with provisioning calculations by retrieving a count
 of all billable resources attached to a GCP project.
 """
 
-import argparse
 import csv
 import logging
 import os
@@ -34,88 +33,9 @@ ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-def parse_arguments():
-    """Parse command line arguments for subset processing."""
-    parser = argparse.ArgumentParser(
-        description="Process GCP projects in sequential subsets for provisioning calculations"
-    )
-    parser.add_argument(
-        "--total-subsets", "-n",
-        type=int,
-        required=True,
-        help="Total number of subsets to divide projects into (N)"
-    )
-    parser.add_argument(
-        "--subset-index", "-m",
-        type=int,
-        required=True,
-        help="Index of the subset to process (0-based, 0 to N-1)"
-    )
-    parser.add_argument(
-        "--output-prefix", "-o",
-        type=str,
-        default="gcp-benchmark",
-        help="Prefix for output files (default: gcp-benchmark)"
-    )
-    return parser.parse_args()
-
-
-def get_project_subset(projects: List[Project], total_subsets: int, subset_index: int) -> List[Project]:
-    """
-    Extract a sequential subset of projects by dividing total projects into N equal parts.
-    
-    Args:
-        projects: List of all projects
-        total_subsets: Total number of subsets to divide projects into (N)
-        subset_index: Index of the subset to process (0-based, 0 to N-1)
-    
-    Returns:
-        List of projects for the specified subset
-    """
-    total_projects = len(projects)
-    
-    if subset_index >= total_subsets:
-        log.error(
-            "Subset index %d is out of range. Must be between 0 and %d",
-            subset_index, total_subsets - 1
-        )
-        return []
-    
-    # Calculate subset size (with remainder distributed to earlier subsets)
-    base_subset_size = total_projects // total_subsets
-    remainder = total_projects % total_subsets
-    
-    # Calculate start index for this subset
-    if subset_index < remainder:
-        # This subset gets one extra project
-        subset_size = base_subset_size + 1
-        start_index = subset_index * subset_size
-    else:
-        # This subset gets base size
-        subset_size = base_subset_size
-        start_index = remainder * (base_subset_size + 1) + (subset_index - remainder) * base_subset_size
-    
-    end_index = start_index + subset_size
-    
-    if start_index >= total_projects:
-        log.warning(
-            "Subset index %d is out of range. Total projects: %d, total subsets: %d",
-            subset_index, total_projects, total_subsets
-        )
-        return []
-    
-    subset = projects[start_index:end_index]
-    log.info(
-        "Processing subset %d of %d: projects %d-%d of %d total projects (%d projects in this subset)",
-        subset_index + 1, total_subsets, start_index + 1, end_index, total_projects, len(subset)
-    )
-    
-    return subset
-
-
 class GCP:
     def projects(self) -> List[Project]:
-        return list(ProjectsClient().search_projects())
+        return ProjectsClient().search_projects()
 
     def list_instances(self, project_id: str):
         request = compute.AggregatedListInstancesRequest(max_results=50, project=project_id)
@@ -265,6 +185,7 @@ def validate_and_adjust_kube_counts(gcp_project: Project, result: Dict[str, Any]
         detected_nodes = result["kubenodes_running"]
 
         if standard_node_count > detected_nodes:
+
             discrepancy = standard_node_count - detected_nodes
             message = (
                 f"Project {gcp_project.project_id}: GKE API reports {standard_node_count} nodes, "
@@ -307,96 +228,69 @@ def count_cloud_run_jobs(gcp_project: Project, result: Dict[str, int]):
     result["cloud_run_jobs"] = len(jobs)
 
 
-def main():
-    args = parse_arguments()
-    
-    global data, service_disabled_calls, gcp, project
-    
-    data = []
-    service_disabled_calls = {}
-    headers = {
-        "project_id": "Project ID",
-        "kubenodes_running": "K8s Nodes (Running)",
-        "kubenodes_terminated": "K8s Nodes (Terminated)",
-        "vms_running": "VMs (Running)",
-        "vms_terminated": "VMs (Terminated)",
-        "autopilot_clusters": "Autopilot Clusters",
-        "autopilot_nodes": "Autopilot Nodes (Running)",
-        "cloud_run_services": "Cloud Run Services",
-        "cloud_run_jobs": "Cloud Run Jobs",
-    }
-    totals = {
-        "project_id": f"subset_{args.subset_index + 1}_of_{args.total_subsets}_totals",
-        "kubenodes_running": 0,
-        "kubenodes_terminated": 0,
-        "vms_running": 0,
-        "vms_terminated": 0,
-        "autopilot_clusters": 0,
-        "autopilot_nodes": 0,
-        "cloud_run_services": 0,
-        "cloud_run_jobs": 0,
-    }
+data = []
+service_disabled_calls = {}
+headers = {
+    "project_id": "Project ID",
+    "kubenodes_running": "K8s Nodes (Running)",
+    "kubenodes_terminated": "K8s Nodes (Terminated)",
+    "vms_running": "VMs (Running)",
+    "vms_terminated": "VMs (Terminated)",
+    "autopilot_clusters": "Autopilot Clusters",
+    "autopilot_nodes": "Autopilot Nodes (Running)",
+    "cloud_run_services": "Cloud Run Services",
+    "cloud_run_jobs": "Cloud Run Jobs",
+}
+totals = {
+    "project_id": "totals",
+    "kubenodes_running": 0,
+    "kubenodes_terminated": 0,
+    "vms_running": 0,
+    "vms_terminated": 0,
+    "autopilot_clusters": 0,
+    "autopilot_nodes": 0,
+    "cloud_run_services": 0,
+    "cloud_run_jobs": 0,
+}
 
-    gcp = GCP()
+gcp = GCP()
 
-    # Get all projects and extract the subset
-    all_projects = gcp.projects()
-    if not all_projects:
-        log.error("No GCP projects found")
-        exit(1)  # pylint: disable=consider-using-sys-exit
+projects = gcp.projects()
+if not projects:
+    log.error("No GCP projects found")
+    exit(1)  # pylint: disable=consider-using-sys-exit
 
-    log.info("Found %d total GCP projects", len(all_projects))
-    
-    projects_subset = get_project_subset(all_projects, args.total_subsets, args.subset_index)
-    if not projects_subset:
-        log.error("No projects in the specified subset")
-        exit(1)  # pylint: disable=consider-using-sys-exit
+for project in gcp.projects():
+    row = process_gcp_project(project)
+    if row:
+        data.append(row)
+        for k in totals:
+            if k != "project_id":
+                totals[k] += row[k]
 
-    # Process the subset
-    for project in projects_subset:
-        row = process_gcp_project(project)
-        if row:
-            data.append(row)
-            for k in totals:
-                if k != "project_id":
-                    totals[k] += row[k]
+data.append(totals)
 
-    data.append(totals)
+# Output our results
+print(tabulate(data, headers=headers, tablefmt="grid", maxheadercolwidths=[10, 15, 15, 10, 15, 15, 15, 15, 12]))
 
-    # Generate output filenames with subset information
-    csv_filename = f"{args.output_prefix}_subset_{args.subset_index + 1}_of_{args.total_subsets}.csv"
-    exceptions_filename = f"{args.output_prefix}_subset_{args.subset_index + 1}_of_{args.total_subsets}_exceptions.txt"
+with open("gcp-benchmark.csv", "w", newline="", encoding="utf-8") as csv_file:
+    csv_writer = csv.DictWriter(csv_file, fieldnames=headers.keys())
+    csv_writer.writeheader()
+    csv_writer.writerows(data)
 
-    # Output results
-    print(f"\nSubset {args.subset_index + 1} of {args.total_subsets} Results:")
-    print(tabulate(data, headers=headers, tablefmt="grid", maxheadercolwidths=[10, 15, 15, 10, 15, 15, 15, 15, 12]))
+log.info("CSV file saved to: ./gcp-benchmark.csv")
 
-    # Save CSV
-    with open(csv_filename, "w", newline="", encoding="utf-8") as csv_file:
-        csv_writer = csv.DictWriter(csv_file, fieldnames=headers.keys())
-        csv_writer.writeheader()
-        csv_writer.writerows(data)
+if service_disabled_calls:
+    MSG = (
+        "Some API service calls were disabled in certain projects, preventing data processing. "
+        "These APIs might be intentionally disabled in your environment. "
+        "Details have been captured and saved to: ./gcp-exceptions.txt for your review."
+    )
+    log.warning(MSG)
 
-    log.info("CSV file saved to: ./%s", csv_filename)
-
-    # Save exceptions if any
-    if service_disabled_calls:
-        MSG = (
-            "Some API service calls were disabled in certain projects, preventing data processing. "
-            "These APIs might be intentionally disabled in your environment. "
-            f"Details have been captured and saved to: ./{exceptions_filename} for your review."
-        )
-        log.warning(MSG)
-
-        with open(exceptions_filename, "w", encoding="utf-8") as f:
-            f.write(f"Subset {args.subset_index + 1} of {args.total_subsets} Exceptions\n")
-            f.write("=" * 50 + "\n\n")
-            for project_id, messages in service_disabled_calls.items():
-                f.write(f"Project ID: {project_id}\n")
-                for msg in set(messages):
-                    f.write(f"- {msg}\n")
-                f.write("\n")
-
-
-if __name__ == "__main__":
-    main()
+    with open("gcp-exceptions.txt", "w", encoding="utf-8") as f:
+        for project, messages in service_disabled_calls.items():
+            f.write(f"Project ID: {project}\n")
+            for msg in set(messages):
+                f.write(f"- {msg}\n")
+            f.write("\n")
