@@ -99,7 +99,11 @@ def process_gcp_project(gcp_project: Project) -> Dict[str, Any]:
     if gcp_project.state == Project.State.DELETE_REQUESTED:
         log.info("Skipping GCP project %s (project pending deletion)", gcp_project.display_name)
         return {}
-
+    
+    # Linea nueva
+    if gcp_projects.parent == 
+        return {}
+    
     result = {
         "project_id": gcp_project.project_id,
         "kubenodes_running": 0,
