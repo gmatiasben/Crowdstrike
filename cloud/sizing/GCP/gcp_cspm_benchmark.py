@@ -264,12 +264,13 @@ for project in gcp.projects():
     print(f"El project es \n{project}\n")
     # projectstring = f"projects/{project_id}"
     projectstring = f"projects/946339091248"
-    if ( project.name != projectstring & row = process_gcp_project(project))
-    if row:
-        data.append(row)
-        for k in totals:
-            if k != "project_id":
-                totals[k] += row[k]
+    if ( project.name != projectstring)
+        row = process_gcp_project(project))
+        if row:
+            data.append(row)
+            for k in totals:
+                if k != "project_id":
+                    totals[k] += row[k]
 
 data.append(totals)
 
