@@ -3,7 +3,7 @@
 # Based on the cloud provider, downloads the necessary scripts
 # to perform a sizing calculation.
 
-base_url=https://github.com/gmatiasben/Crowdstrike/edit/main/cloud/sizing/
+base_url=https://raw.githubusercontent.com/gmatiasben/Crowdstrike/refs/heads/main/cloud/sizing
 
 # Usage message
 usage() {
