@@ -261,8 +261,10 @@ if not projects:
     exit(1)  # pylint: disable=consider-using-sys-exit
 
 for project in gcp.projects():
-    print(f"El project ID es {project}\n\n")
-    row = process_gcp_project(project)
+    print(f"El project es \n{project}\n")
+    # projectstring = f"projects/{project_id}"
+    projectstring = f"projects/946339091248"
+    if ( project.name != projectstring && row = process_gcp_project(project))
     if row:
         data.append(row)
         for k in totals:
