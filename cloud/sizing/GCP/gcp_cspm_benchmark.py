@@ -261,7 +261,7 @@ if not projects:
     exit(1)  # pylint: disable=consider-using-sys-exit
 
 for project in gcp.projects():
-    print(project)
+    print(f"El project ID es {project}\n\n")
     row = process_gcp_project(project)
     if row:
         data.append(row)
