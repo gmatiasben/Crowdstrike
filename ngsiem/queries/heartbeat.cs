@@ -1,0 +1,1 @@
+ComputerName=?computername #event_simpleName=SensorHeartbeat | hour := time:hour() | formatTime(format="%Y-%m-%d", as="day") | groupBy([day,hour])  | sort([day, hour], type=[string, number], order=[asc, desc],limit=4000)
