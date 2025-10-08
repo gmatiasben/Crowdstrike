@@ -4,8 +4,8 @@
 # Matias Bendel 2025
 
 # Set your credentials
-CLIENT_ID="FILL-ME"
-CLIENT_SECRET="FILL-ME"
+CLIENT_ID="<YOUR-API-CLIENT-ID>"
+CLIENT_SECRET="<YOUR-API-CLIEN-SECRET>"
 APP_ID="my-test-app-000"
 
 # Get token
