@@ -1,0 +1,300 @@
+name: Identity Protection
+updateFrequency: never
+timeSelector: {}
+sharedTimeInterval:
+  enabled: false
+  isLive: false
+  start: 1d
+widgets:
+  43bacb0b-ed66-4482-b0ea-13a7118fc742:
+    x: 0
+    y: 6
+    height: 4
+    queryString: ' "#event_simpleName" = "ActiveDirectoryAuditGroupMemberModified"
+      | table([@timestamp, ComputerName, PerformedByAccountObjectName, PerformedOnAccountDomain,
+      PerformedOnAccountName, GroupMemberAccountName])'
+    end: now
+    start: 1y
+    width: 12
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Group Membership Changes
+    isLive: false
+    type: query
+  d6dfcaef-ec9f-40a6-8275-6e76197e28c6:
+    x: 0
+    y: 36
+    height: 9
+    queryString: '#event_simpleName=Event_IdpDetectionSummaryEvent | groupBy([Name,
+      SourceAccountName]) | sankey(source="SourceAccountName", target="Name")'
+    visualization: sankey
+    end: now
+    start: 1y
+    width: 8
+    title: ITDR Detections
+    isLive: false
+    type: query
+  982587e8-84f9-44ca-80d1-5791677ea2c4:
+    x: 0
+    y: 10
+    height: 4
+    queryString: |-
+      #event_simpleName = ActiveDirectoryAuditUserModified |
+      ActiveDirectoryAuditActionType = 128 /* Conta Desabilitada */ |
+      table([@timestamp, PerformedByAccountObjectName, PerformedOnAccountDomain, PerformedOnAccountName])
+    end: now
+    start: 1y
+    width: 8
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Accounts Disabled
+    isLive: false
+    type: query
+  fb7ac0e0-f583-4b93-bc06-1abf82afad5f:
+    x: 0
+    y: 18
+    height: 4
+    queryString: |
+      "#event_simpleName" = ActiveDirectoryAuditUserModified |
+      ActiveDirectoryAuditActionType = 64 | /* Account Enabled */
+      table([@timestamp, PerformedByAccountObjectName, PerformedOnAccountDomain, PerformedOnAccountName])
+    end: now
+    start: 1y
+    width: 8
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Accounts Enabled
+    isLive: false
+    type: query
+  61f142f7-0b0d-4b24-875c-99fb6cdb7f5d:
+    x: 8
+    y: 18
+    height: 4
+    queryString: "\"#event_simpleName\" = ActiveDirectoryAuthenticationFailure |\n\
+      ipLocation(SourceEndpointAddressIP4)  | ioc:lookup(field=[SourceEndpointAddressIP4],\
+      \ type=\"ip_address\", confidenceThreshold=unverified) | rename(field=\"ioc[0].labels\"\
+      , as=\"IOCThreatGroup\") | rename(field=\"ioc[0].malicious_confidence\", as=\"\
+      IOCConfidence\") | rename(field=\"ioc[0].indicator\", as=\"IOCipAddress\") |\
+      \ IOCThreatGroup=* | groupBy([SourceEndpointAddressIP4, SourceEndpointAddressIP4.IpAddress.country,\
+      \ IOCThreatGroup]) | sort()    "
+    end: now
+    start: 1y
+    width: 4
+    options:
+      columns:
+      - fieldName: '@timestamp'
+        format: datetime
+        type: field
+        width: 200
+      - groupByPrefix: false
+        header: Field List
+        type: fieldList
+      newestAtBottom: true
+      showOnlyFirstLine: false
+    visualization: list-view
+    title: Known Adversary Group - Attempting to Get In
+    isLive: false
+    type: query
+  1c74d2f2-c53a-4a28-850e-465cf40546d8:
+    x: 0
+    y: 22
+    height: 6
+    queryString: |-
+      "#event_simpleName" = ActiveDirectoryAuthenticationFailure |
+      ipLocation(SourceEndpointAddressIP4) | groupBy([SourceAccountUserName]) | sort(limit=10)
+    visualization: bar-chart
+    end: now
+    start: 2d
+    width: 12
+    title: Top 10 - Brute Force Targets
+    isLive: false
+    type: query
+  e26c7c16-e02d-4414-ac37-5c353e1c581d:
+    x: 0
+    y: 32
+    height: 4
+    queryString: |2-
+       "#event_simpleName" = ActiveDirectoryAuditUserModified |
+      ActiveDirectoryAuditActionType = 0 | /** Criacao de Usuarios **/
+      table([@timestamp, PerformedByAccountObjectName, PerformedOnAccountDomain, PerformedOnAccountName])
+    end: now
+    start: 1y
+    width: 8
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Users Created
+    isLive: false
+    type: query
+  af911a8d-96d6-488f-83dd-1bfb97846e30:
+    x: 8
+    y: 28
+    height: 4
+    queryString: |-
+      "#event_simpleName" = ActiveDirectoryAuditGroupMemberModified
+      | GroupMemberAccountName=~/^CN=luiz,CN=Users,DC=splab,DC=com,DC=br$/ | rename(field="GroupMemberAccountName", as="HoneyToken")| rename(field="name", as="TipoAlteracao")| table([@timestamp, TipoAlteracao, SourceEndpointHostName, PerformedByAccountObjectName, PerformedonAccountNamge, PerformedOnAccountName, HoneyToken])
+    end: now
+    start: 1d
+    width: 4
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Honeytokens - Alteracao de Grupos
+    isLive: false
+    type: query
+  79005aed-e61c-4ab3-920c-9c1dcbbd7a8d:
+    x: 0
+    y: 53
+    height: 6
+    queryString: |-
+      "#event_simpleName" = ActiveDirectoryServiceAccessRequest |
+      TargetServiceAccessIdentifier = cifs* |
+      table([@timestamp, SourceEndpointHostName, SourceAccountUserName, TargetServiceAccessIdentifier])
+    end: now
+    start: 1y
+    width: 12
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: File Share Access View
+    isLive: false
+    type: query
+  a0b3dca2-fc44-4bda-8be7-4eadc60ecee7:
+    x: 8
+    y: 10
+    height: 8
+    queryString: |-
+      "#event_simpleName" = ActiveDirectoryAuthenticationFailure |
+      ipLocation(SourceEndpointAddressIP4) | groupBy([SourceEndpointAddressIP4.country]) | sort()
+    end: now
+    start: 1y
+    width: 4
+    options:
+      thresholdConfig: {}
+    visualization: gauge
+    title: Authentication from Untrusted Countries
+    isLive: false
+    type: query
+  5656cd41-6ed4-49b6-8c39-684ca926b435:
+    x: 0
+    y: 28
+    height: 4
+    queryString: |
+      "#event_simpleName" = ActiveDirectoryAuditUserModified |
+      ActiveDirectoryAuditActionType = 128 | /* Accounts Disabled */
+      table([@timestamp, PerformedByAccountObjectName, PerformedOnAccountDomain, PerformedOnAccountName])
+    end: now
+    start: 1y
+    width: 8
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Accounts Disabled
+    isLive: false
+    type: query
+  cb00c3c3-1016-4c4a-b199-084e8f15d7ff:
+    x: 0
+    y: 59
+    height: 3
+    queryString: |-
+      "#event_simpleName" = ActiveDirectoryServiceAccessRequest |
+      TargetServiceAccessIdentifier = termsrv* | ipLocation(SourceEndpointAddressIP4) | groupBy([SourceEndpointAddressIP4.city])
+    end: now
+    start: 1y
+    width: 12
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Acesso RDP por Cidade de Origem
+    isLive: false
+    type: query
+  6252d024-410d-44ba-bfe8-7a9e250f2346:
+    x: 0
+    y: 45
+    height: 4
+    queryString: |-
+      #event_simpleName=ActiveDirectoryIncomingLdapSearchRequest
+      | TargetServiceAccessIdentifier = ldap*
+      | LdapSearchFilterSample=*servicePrincipalName*
+      | table([SourceEndpointHostName,SourceAccountUserName, LdapSearchFilterSample])
+    end: now
+    start: 1y
+    width: 12
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Kerberoasting Activity
+    isLive: false
+    type: query
+  dbbbab5a-a885-4b67-9312-615e59f68421:
+    x: 0
+    y: 14
+    height: 4
+    queryString: |
+      "#event_simpleName" = "ActiveDirectoryAuditUserModified" |
+      ActiveDirectoryAuditActionType = 1 | /** User Deleted **/
+      table([@timestamp, PerformedByAccountObjectName, PerformedOnAccountDomain, PerformedOnAccountName, TargetDomainControllerHostName])
+    end: now
+    start: 1y
+    width: 8
+    options:
+      cell-overflow: wrap-text
+      configured-columns: {}
+      row-numbers-enabled: false
+    visualization: table-view
+    title: Users Deleted
+    isLive: false
+    type: query
+  b44e24bc-b023-48e2-88af-a036e7e906a2:
+    x: 0
+    y: 49
+    height: 4
+    queryString: |-
+      "#event_simpleName" = ActiveDirectoryAuthenticationFailure |
+      ipLocation(SourceEndpointAddressIP4) | sankey(source="SourceEndpointAddressIP4.city", target="SourceEndpointAddressIP4.country")
+    visualization: sankey
+    end: now
+    start: 1y
+    width: 12
+    title: Authentication from Untrusted Locations
+    isLive: false
+    type: query
+  f71e1324-cacc-444a-b51a-850c738e4c40:
+    x: 0
+    y: 0
+    height: 6
+    queryString: "\"#event_simpleName\" = ActiveDirectoryAuthenticationFailure |\n\
+      ipLocation(SourceEndpointAddressIP4)  | worldMap(ip=SourceEndpointAddressIP4)\
+      \  "
+    end: now
+    start: 1y
+    width: 12
+    options:
+      autoRotate: true
+      projection: mercator
+    visualization: world-map
+    title: Brute Force - Map
+    isLive: false
+    type: query
+$schema: https://schemas.humio.com/dashboard/v0.20.0
