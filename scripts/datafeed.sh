@@ -27,7 +27,11 @@ STREAM_RESPONSE=$(curl -s -X GET "https://api.crowdstrike.com/sensors/entities/d
 
 # Extract the correct values
 SESSION_TOKEN=$(echo "$STREAM_RESPONSE" | jq -r '.resources[0].sessionToken.token')
+
+# Choose the second if you require an offset
 STREAM_URL=$(echo "$STREAM_RESPONSE" | jq -r '.resources[0].dataFeedURL')
+#STREAM_URL="https://firehose.crowdstrike.com/sensors/entities/datafeed/v1/0?appId=$APP_ID&offset=XXXXX"
+
 REFRESH_URL=$(echo "$STREAM_RESPONSE" | jq -r '.resources[0].refreshActiveSessionURL')
 REFRESH_INTERVAL=$(echo "$STREAM_RESPONSE" | jq -r '.resources[0].refreshActiveSessionInterval')
 CLOSE_URL=$(echo "$REFRESH_URL" | sed 's/refresh_active_stream_session/close_stream_session/g')
