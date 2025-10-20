@@ -35,7 +35,7 @@ How to push the script via Intune:
 2. Select Devices -> Scripts
 3. Click + Add
 4. Enter the basic details for the script
-5. Upload [CSFalconInstall.sh](https://github.com/cliv/cs-falcon-protect-intune?tab=readme-ov-file#:~:text=Upload-,CSFalconInstall.sh,-Select%20%22No%22%20For)
+5. Upload [[CSFalconInstall.sh](https://github.com/cliv/cs-falcon-protect-intune?tab=readme-ov-file#:~:text=Upload-,CSFalconInstall.sh,-Select%20%22No%22%20For)](https://github.com/cliv/cs-falcon-protect-intune/blob/main/CSFalconInstall.sh)
 * Select "No" For Run script as signed-in user so it runs as the superuser instead of the local user
 * Choose your preference for Hide script notifications on devices
 * Setting Not Configured for the Script Frequency will ensure it runs only once (Unless the script is updated or the user's cache is deleted)
