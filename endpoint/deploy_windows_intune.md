@@ -24,7 +24,7 @@ This guide provides step-by-step instructions for installing the CrowdStrike Fal
 
 The CrowdStrike Falcon Sensor for Windows is available for download directly within the Falcon Console. This can be found by navigating to Host setup and management → Sensor downloads.
 
-Take note of your Customer ID. This identifier is unique to your organization and is required during deployment to link each individual Sensor deployed to your individual instance of CrowdStrike Falcon.
+Take note of your Customer ID (CID). This identifier is unique to your organization and is required during deployment to link each individual Sensor deployed to your individual instance of CrowdStrike Falcon.
 
 ### Downloading the Falcon Uninstall Tool (optional)
 
