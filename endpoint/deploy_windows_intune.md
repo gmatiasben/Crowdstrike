@@ -1,4 +1,4 @@
-# Installing the CrowdStrike Falcon Sensor using Microsoft Intune
+# Installing the CrowdStrike Falcon Sensor for Windows using Microsoft Intune
 
 This guide provides step-by-step instructions for installing the CrowdStrike Falcon Sensor by using Microsoft Intune. This deployment method provides centralized management and automated distribution of the CrowdStrike Falcon Sensor across your organization's Windows devices.
 
