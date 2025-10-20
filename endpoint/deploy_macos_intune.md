@@ -15,7 +15,7 @@ The closest thing to do to get this to work is to deploy two .mobileconfigs - on
 Deploy the .mobileconfig files in /MobileConfigs by doing the following:
 
 1. Open open the Microsoft Endpoint Manager admin center
-2. Select Devices -> Configuration Profiles
+2. Select Devices → Configuration Profiles
 3. Click Create Profile
 4. In the blade that opens on the right, select macOS for platform, Templates for Profile type, and Custom for template name. Click Create
 5. Enter the basic details for the profile. Click Next
@@ -43,7 +43,7 @@ Now the actual deployment of Crowdstrike - This should work on M1 and Intel with
 How to push the script via Intune:
 
 1. Open open the Microsoft Endpoint Manager admin center
-2. Select Devices -> Scripts
+2. Select Devices → Scripts
 3. Click + Add
 4. Enter the basic details for the script
 5. Upload [[CSFalconInstall.sh](https://github.com/cliv/cs-falcon-protect-intune?tab=readme-ov-file#:~:text=Upload-,CSFalconInstall.sh,-Select%20%22No%22%20For)](https://github.com/cliv/cs-falcon-protect-intune/blob/main/CSFalconInstall.sh)
