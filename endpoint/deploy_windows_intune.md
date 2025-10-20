@@ -5,7 +5,7 @@ This guide provides step-by-step instructions for installing the CrowdStrike Fal
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Downloading the falcon sensor](#downloading-the-falcon-sensor)
+- [Downloading the Falcon Sensor](#downloading-the-falcon-sensor)
 - [Creating a .intunewim Package](#creating-a-intunewim-package-for-microsoft-intune)
 - [Configuring the Application in Microsoft Intune](#configuring-the-application-in-microsoft-intune)
 - [Deployment and Monitoring](#deployment-and-monitoring)
