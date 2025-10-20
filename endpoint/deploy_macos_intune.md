@@ -28,11 +28,12 @@ Deploy the .mobileconfig files in /MobileConfigs by doing the following:
 
 The CrowdStrike Falcon Sensor can be downloaded using a script directly within the Falcon Console. This can be achieved through an API that can be found by navigating to Support and Resources → API clients and keys. 
 
-* Click on Create API client button.
-  * Client name = Deploy MacOS
-  * Scope = Sensor download (Read), Falcon images download (Read)
-* Click on create
-* Save client id, secret and Base URL. You will need them for the next step.
+* Click on "Create API client" button
+* Complete with the following information:
+  * Client name: Deploy MacOS
+  * Scope: Sensor download (Read), Falcon images download (Read)
+* Click on "create"
+* Save client id, secret and Base URL. You will need them for later use.
 
 
 ## Part 3 - Deployment Script
