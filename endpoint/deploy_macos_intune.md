@@ -21,14 +21,24 @@ Deploy the .mobileconfig files in /MobileConfigs by doing the following:
 5. Enter the basic details for the profile. Click Next
 6. Upload profile [MobileConfigs/Falcon Profile.mobileconfig](https://supportportal.crowdstrike.com/s/article/ka16T000000wtMWQAY)
 * Check Falcon Configuration Profile for Sonoma and earlier vs Falcon Configuration Profile Update for Sequoia and later
-8. Choose the users and/or devices to deploy to
-9. Review the settings for your profile, and click Create
+7. Choose the users and/or devices to deploy to
+8. Review the settings for your profile, and click Create
 
-## Part 2 - Deployment Script
+## Part 2 - API Client
+
+The CrowdStrike Falcon Sensor can be downloaded using a script directly within the Falcon Console. This can be achieved through an API that can be found by navigating to Support and Resources → API clients and keys. 
+
+* Click on Create API client button.
+** Client name = Deploy MacOS
+** Scope = Sensor download | Read
+Falcon images download | Read
+* Click on create
+* Save client id, secret and Base URL. You will need them for the next step.
+
+
+## Part 3 - Deployment Script
 
 Now the actual deployment of Crowdstrike - This should work on M1 and Intel with no additional dependencies.
-
-This script uses JXA & Open Scripting Architecture to parse JSON (We used to use Python, but runtimes are being deprecated in MacOS). (Thanks to both https://www.macblog.org/posts/how-to-parse-json-macos-command-line/ and RhubarbBread on the MacAdmins slack for guidance on this)
 
 How to push the script via Intune:
 
@@ -37,6 +47,7 @@ How to push the script via Intune:
 3. Click + Add
 4. Enter the basic details for the script
 5. Upload [[CSFalconInstall.sh](https://github.com/cliv/cs-falcon-protect-intune?tab=readme-ov-file#:~:text=Upload-,CSFalconInstall.sh,-Select%20%22No%22%20For)](https://github.com/cliv/cs-falcon-protect-intune/blob/main/CSFalconInstall.sh)
+* Update parameters CLIENT_ID, CLIENT_SECRET and BASE_URL from step (2).
 * Select "No" For Run script as signed-in user so it runs as the superuser instead of the local user
 * Choose your preference for Hide script notifications on devices
 * Setting Not Configured for the Script Frequency will ensure it runs only once (Unless the script is updated or the user's cache is deleted)
