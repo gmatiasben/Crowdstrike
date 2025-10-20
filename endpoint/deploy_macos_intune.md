@@ -14,18 +14,31 @@ The closest thing to do to get this to work is to deploy two .mobileconfigs - on
 
 Deploy the .mobileconfig files in /MobileConfigs by doing the following:
 
-1) Open open the Microsoft Endpoint Manager admin center
+1. Open open the Microsoft Endpoint Manager admin center
+2. Select Devices -> Configuration Profiles
+3. Click Create Profile
+4. In the blade that opens on the right, select macOS for platform, Templates for Profile type, and Custom for template name. Click Create
+5. Enter the basic details for the profile. Click Next
+6. Upload [MobileConfigs/Falcon Profile.mobileconfig](https://supportportal.crowdstrike.com/s/article/ka16T000000wtMWQAY)
+7. Choose the users and/or devices to deploy to
+8. Review the settings for your profile, and click Create
 
-2) Select Devices -> Configuration Profiles
+## Part 2 - Deployment Script
 
-3) Click Create Profile
+Now the actual deployment of Crowdstrike - This should work on M1 and Intel with no additional dependencies.
 
-4) In the blade that opens on the right, select macOS for platform, Templates for Profile type, and Custom for template name. Click Create
+This script uses JXA & Open Scripting Architecture to parse JSON (We used to use Python, but runtimes are being deprecated in MacOS). (Thanks to both https://www.macblog.org/posts/how-to-parse-json-macos-command-line/ and RhubarbBread on the MacAdmins slack for guidance on this)
 
-5) Enter the basic details for the profile. Click Next
+How to push the script via Intune:
 
-6) Upload [MobileConfigs/Falcon Profile.mobileconfig](https://supportportal.crowdstrike.com/s/article/ka16T000000wtMWQAY)
-
-7) Choose the users and/or devices to deploy to
-
-8) Review the settings for your profile, and click Create
+1. Open open the Microsoft Endpoint Manager admin center
+2. Select Devices -> Scripts
+3. Click + Add
+4. Enter the basic details for the script
+5. Upload [CSFalconInstall.sh](https://github.com/cliv/cs-falcon-protect-intune?tab=readme-ov-file#:~:text=Upload-,CSFalconInstall.sh,-Select%20%22No%22%20For)
+* Select "No" For Run script as signed-in user so it runs as the superuser instead of the local user
+* Choose your preference for Hide script notifications on devices
+* Setting Not Configured for the Script Frequency will ensure it runs only once (Unless the script is updated or the user's cache is deleted)
+* 1 time for script retries should be plenty, but this setting is at your discretion.
+6. Select the users and devices you want to deploy Crowdstrike Falcon Protect to
+7. Review your settings and click Add if everything looks correct to you
