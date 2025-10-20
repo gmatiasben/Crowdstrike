@@ -1,4 +1,4 @@
-# Installing Crowdstrike Falcon Protect for macOS using Microsoft Intune
+# Installing Crowdstrike Falcon Sensor for macOS using Microsoft Intune
 Intune doesn't support installing .pkg files directly - instead requiring wrapping them using custom scripts.
 
 It's much easier and more reliable to use a shell script to deploy Crowdstrike Falcon Protect to end-users.
