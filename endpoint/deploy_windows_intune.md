@@ -5,6 +5,7 @@ This guide provides step-by-step instructions for installing the CrowdStrike Fal
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
+- [Downloading the falcon sensor](#downloading-the-falcon-sensor)
 - [Creating a .intunewim Package](#creating-a-intunewim-package-for-microsoft-intune)
 - [Configuring the Application in Microsoft Intune](#configuring-the-application-in-microsoft-intune)
 - [Deployment and Monitoring](#deployment-and-monitoring)
@@ -19,7 +20,20 @@ This guide provides step-by-step instructions for installing the CrowdStrike Fal
 > - Administrative access to the Microsoft Intune console
 > - The [Microsoft Win32 Content Prep Tool](https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool) installed on your system
 > - Your CrowdStrike Falcon Customer ID (CID)
-> - The CrowdStrike Falcon Windows installer `FalconSensor_Windows.exe`
+
+## Downloading the Falcon Sensor
+
+The CrowdStrike Falcon Sensor for Windows is available for download directly within the Falcon Console. This can be found by navigating to Host setup and management → Sensor downloads.
+
+Take note of your Customer ID. This identifier is unique to your organization and is required during deployment to link each individual Sensor deployed to your individual instance of CrowdStrike Falcon.
+
+### Downloading the Falcon Uninstall Tool (optional)
+
+The software package created in the steps ahead can be used for installation and removal of the sensor through Microsoft Intune. If you do not wish to use the same package for both installation and removal, skip this step.
+
+The Windows Sensor Uninstall Tool is available for download directly within the Falcon Console. This can be found by navigating to Support → Tool Downloads. 
+
+The Falcon Windows Sensor Uninstall Tool is found at the bottom of the page.
 
 ## Creating a .intunewim Package for Microsoft Intune
 
