@@ -19,9 +19,10 @@ Deploy the .mobileconfig files in /MobileConfigs by doing the following:
 3. Click Create Profile
 4. In the blade that opens on the right, select macOS for platform, Templates for Profile type, and Custom for template name. Click Create
 5. Enter the basic details for the profile. Click Next
-6. Upload [MobileConfigs/Falcon Profile.mobileconfig](https://supportportal.crowdstrike.com/s/article/ka16T000000wtMWQAY)
-7. Choose the users and/or devices to deploy to
-8. Review the settings for your profile, and click Create
+6. Upload profile [MobileConfigs/Falcon Profile.mobileconfig](https://supportportal.crowdstrike.com/s/article/ka16T000000wtMWQAY)
+* Check Falcon Configuration Profile for Sonoma and earlier vs Falcon Configuration Profile Update for Sequoia and later
+8. Choose the users and/or devices to deploy to
+9. Review the settings for your profile, and click Create
 
 ## Part 2 - Deployment Script
 
