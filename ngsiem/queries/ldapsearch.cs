@@ -1,3 +1,4 @@
 // LDAPsearches hunting
 #event_simpleName=ActiveDirectoryIncomingLdapSearchRequest
-| groupBy([LdapSearchBaseObjectSample, ComputerName], function=([top([LdapSearchAttributes,LdapSearchFilterSample,SourceEndpointHostName,SourceAccount
+| groupBy([ComputerName], function=([top([LdapSearchBaseObjectSample,LdapSearchAttributes,LdapSearchFilterSample,SourceEndpointHostName,SourceAccount])]), limit=max)
+//| _count > 2
