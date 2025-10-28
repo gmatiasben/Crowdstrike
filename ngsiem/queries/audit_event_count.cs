@@ -1,4 +1,6 @@
-// Count number of events for the last week
+// Prerquisite: Configure 7d timeframe
+// Gives Total GB/day - v1.0.0
+// Matias Bendel by Crowdstrike
 eventSize() 
 | [sum("_eventSize", as=TotalGB)]
 | TotalGB:=TotalGB/7
