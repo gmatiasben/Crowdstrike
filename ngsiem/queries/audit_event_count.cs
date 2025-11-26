@@ -1,4 +1,4 @@
-// Prerquisite: Configure 7d timeframe
+// Prerequisite: Configure 7d timeframe
 // Gives Total GB/day - v1.0.0
 // Matias Bendel by Crowdstrike
 eventSize() 
