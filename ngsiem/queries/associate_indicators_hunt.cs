@@ -3,7 +3,9 @@
 #event_simpleName=/^(AssociateIndicator|ProcessRollup2)$/ event_platform=Win
 | case{
     // Do nothing
-    #event_simpleName=AssociateIndicator;
+    #event_simpleName=AssociateIndicator 
+    // Filter by modifying DetectSeverity value and removing comments
+    /*| DetectSeverity>=70*/;
     // Check to see if event is ProcessRollup2. If yes, create mini process tree
     #event_simpleName="ProcessRollup2" | ExecutionChain:=format(format="%s\n\t└ %s (%s)", field=[ParentBaseFileName, FileName, RawProcessId]);
 }
