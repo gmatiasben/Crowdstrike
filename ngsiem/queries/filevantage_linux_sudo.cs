@@ -12,6 +12,6 @@
 }
 | CommandLineID:=CommandLinePR2 | CommandLineID:=CommandLineFIM
 | selfJoinFilter(field=[aid,CommandLineID], where=[{#event_simpleName="ProcessRollup2"}, {#event_simpleName="FileIntegrityMonitorRuleMatched"}])
-| groupBy([aid,CommandLineID,ProcessStartTime], function=([collect([ComputerName, RUID, UserName])]), limit=max)
+| groupBy([aid,CommandLineID,ProcessStartTime], function=([collect([ComputerName, UserName, RUID, RGID])]), limit=max)
 | RUID != 0
 | ProcessStartTime:=ProcessStartTime*1000 | ProcessStartTime:=formatTime(format="%F %T.%L %Z", field="ProcessStartTime")
