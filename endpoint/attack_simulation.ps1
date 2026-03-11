@@ -1,4 +1,5 @@
 # Powershell script for an attack emulation - Crowdstrike 
+# Sould be run as administrator
 # if laptop leave 1, else configure 0
 $laptop = 1
 Write-Output "#-------------------------------------------------------------------------"
@@ -58,16 +59,19 @@ arp -a
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Cleanup"
 if ($laptop -eq 1) { 
-	del C:\tools.zip C:\soundrecorder.exe C:\output.wav C:\AntiUsbShortCut\AntiUsb.exe
+	del C:\tools.zip 
+	del C:\soundrecorder.exe 
+	del C:\output.wav
 	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osk.exe" /v "Debugger" /f
 	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v "Debugger" /f
 	net user /del BadActor666
-	rmdir /S /Q C:\AntiUsbShortCut 
+	rmdir -R C:\AntiUsbShortCut 
 }
 else { 
-	del C:\tools.zip C:\capture.etl C:\AntiUsbShortCut\AntiUsb.exe 
+	del C:\tools.zip 
+	del C:\capture.etl 
 	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osk.exe" /v "Debugger" /f
 	reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v "Debugger" /f
 	net user /del BadActor666
-	rmdir /S /Q C:\AntiUsbShortCut 
+	rmdir -R C:\AntiUsbShortCut 
 }
