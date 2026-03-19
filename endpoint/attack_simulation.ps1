@@ -1,6 +1,8 @@
 # Powershell script for an attack emulation - Crowdstrike 
 # Sould be run as administrator
 # if laptop leave 1, else configure 0
+# Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+# Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
 $laptop = 1
 Write-Output "#-------------------------------------------------------------------------"
 Write-Output "# Reconoissance - whoami"
