@@ -67,7 +67,7 @@ New-ItemProperty -Path $policyPath -Name "urlTemplate" -Value "https://api.us-2.
 Write-Output "Set urlTemplate."
 
 # Set registrationIdentity (same for all users)
-$registrationIdentity = ""
+$registrationIdentity = "<REPLACE_WITH_REGISTRATION>"
 New-ItemProperty -Path $policyPath -Name "registrationIdentity" -Value $registrationIdentity -PropertyType String -Force | Out-Null
 Write-Output "Set registrationIdentity."
 
