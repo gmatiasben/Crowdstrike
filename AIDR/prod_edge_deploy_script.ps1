@@ -1,3 +1,4 @@
+$RegistrationIdentity = "<REPLACE_WITH_REGISTRATION>"
 $ErrorActionPreference = "Stop"
 
 $extensionId = "folndgmoekgkipoolphnkclopeopkecc"
