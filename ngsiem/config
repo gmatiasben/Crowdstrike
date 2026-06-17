@@ -1,0 +1,18 @@
+# Example config using default listening port 514
+sources:
+  syslog_udp_514:
+    type: syslog
+    mode: udp
+    port: 514
+    sink: fortinet
+sinks:
+  fortinet:
+    type: hec
+    token: xxx
+    url: xxxx
+  #fortinet:
+    #type: hec
+    #token: XXXX
+    #url: https://XXXX.com:1514
+    #tls:
+    #  caFile: /certonum/onum_rootCA.crt
