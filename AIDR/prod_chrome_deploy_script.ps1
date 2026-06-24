@@ -1,10 +1,8 @@
 # YOU MUST REPLACE VALUES IN THIS SCRIPT BEFORE USING OR IT WILL NOT WORK
 
-# Search for <REPLACE_WITH_URL> and replace that with the correct URL for your cloud
-# US1: https://api.crowdstrike.com/aidr/aiguard
-# US2: https://api.us-2.crowdstrike.com/aidr/aiguard
-
 # Search for <REPLACE_WITH_REGISTRATION> and replace that with the registration identity value from the collector you are using
+# Set registrationIdentity (same for all users)
+$registrationIdentity = "<REPLACE_WITH_REGISTRATION>"
 
 # Chrome Extension ID
 $extensionId = "folndgmoekgkipoolphnkclopeopkecc"
@@ -66,8 +64,6 @@ if (!(Test-Path $policyPath)) {
 New-ItemProperty -Path $policyPath -Name "urlTemplate" -Value "https://api.us-2.crowdstrike.com/aidr/aiguard" -PropertyType String -Force | Out-Null
 Write-Output "Set urlTemplate."
 
-# Set registrationIdentity (same for all users)
-$registrationIdentity = "<REPLACE_WITH_REGISTRATION>"
 New-ItemProperty -Path $policyPath -Name "registrationIdentity" -Value $registrationIdentity -PropertyType String -Force | Out-Null
 Write-Output "Set registrationIdentity."
 
