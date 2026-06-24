@@ -48,7 +48,7 @@ try {
         -Type String -Force
 
     Set-ItemProperty -Path $policyPath -Name "urlTemplate" `
-        -Value "https://api.crowdstrike.com/aidr/aiguard" `
+        -Value "https://api.us-2.crowdstrike.com/aidr/aiguard" `
         -Type String -Force
 
     New-ItemProperty -Path $policyPath -Name "userId" `
