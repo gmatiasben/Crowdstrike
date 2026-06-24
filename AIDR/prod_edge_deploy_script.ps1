@@ -1,3 +1,5 @@
+# Search for <REPLACE_WITH_REGISTRATION> and replace that with the registration identity value from the collector you are using
+# Set registrationIdentity (same for all users)
 $RegistrationIdentity = "<REPLACE_WITH_REGISTRATION>"
 $ErrorActionPreference = "Stop"
 
