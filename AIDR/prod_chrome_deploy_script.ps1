@@ -1,5 +1,3 @@
-# YOU MUST REPLACE VALUES IN THIS SCRIPT BEFORE USING OR IT WILL NOT WORK
-
 # Search for <REPLACE_WITH_REGISTRATION> and replace that with the registration identity value from the collector you are using
 # Set registrationIdentity (same for all users)
 $registrationIdentity = "<REPLACE_WITH_REGISTRATION>"
