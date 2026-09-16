@@ -9,7 +9,7 @@
     // This puts the CommandHistory entries into an array
     | CommandHistorySplit:=splitString(by="¶", field=CommandHistory)
     // Search array for certain commands
-    | objectArray:eval(array="CommandHistorySplit[]", var=x, asArray="out[]", function={ x=/(curl|wget|Invoke-WebRequest)/i | out:=x }) | Command:=out[0];
+    | objectArray:eval(array="CommandHistorySplit[]", var=x, asArray="out[]", function={ x=/(curl|wget|Invoke-WebRequest|scp|smb)/i | out:=x }) | Command:=out[0];
     // Check to see if event is ProcessRollup2. If yes, create mini process tree
     #event_simpleName="ProcessRollup2" | ExecutionChain:=format(format="%s\n\t└ %s (%s)", field=[ParentBaseFileName, FileName, RawProcessId]);
 }
